@@ -1,56 +1,31 @@
 <script>
-	// An array of transaction objects.
-	// Square brackets. Each item is a full object. Commas between items.
-	// Each transaction has a unique id so Svelte can track it efficiently in the list.
-	let transactions = $state([
-		{
-			id: 1,
-			date: '2026-04-01',
-			description: 'Opening cash deposit',
-			debit: 'Cash',
-			credit: "Owner's Equity",
-			amount: 5000
-		},
-		{
-			id: 2,
-			date: '2026-04-03',
-			description: 'Consulting fee from client',
-			debit: 'Cash',
-			credit: 'Revenue',
-			amount: 1200
-		},
-		{
-			id: 3,
-			date: '2026-04-05',
-			description: 'April rent',
-			debit: 'Rent Expense',
-			credit: 'Cash',
-			amount: 800
-		}
-	]);
-	// Add this INSIDE the <script> block, below the transactions array.
-	function classify(t) {
-		if (t.credit === 'Revenue') {
-			return 'Revenue';
-		} else if (t.debit.includes('Expense')) {
-			return 'Expense';
-		} else {
-			return 'Other';
-		}
-	}
+  // 1. Data comes from +page.server.js via the load() function.
+  let { data } = $props();
 
-	// Add these THREE derived totals to your <script> block,
-	// below the classify() function.
+  // 2. Wrap the array in $state so the totals below can react to it.
+  let transactions = $state(data.transactions);
 
-	let totalRevenue = $derived(
-		transactions.filter((t) => classify(t) === 'Revenue').reduce((sum, t) => sum + t.amount, 0)
-	);
+  // 3. Your classification function
+  function classify(t) {
+    if (t.credit === 'Revenue') {
+      return 'Revenue';
+    } else if (t.debit && t.debit.includes('Expense')) {
+      return 'Expense';
+    } else {
+      return 'Other';
+    }
+  }
 
-	let totalExpenses = $derived(
-		transactions.filter((t) => classify(t) === 'Expense').reduce((sum, t) => sum + t.amount, 0)
-	);
+  // 4. Your derived totals
+  let totalRevenue = $derived(
+    transactions.filter((t) => classify(t) === 'Revenue').reduce((sum, t) => sum + Number(t.amount), 0)
+  );
 
-	let netIncome = $derived(totalRevenue - totalExpenses);
+  let totalExpenses = $derived(
+    transactions.filter((t) => classify(t) === 'Expense').reduce((sum, t) => sum + Number(t.amount), 0)
+  );
+
+  let netIncome = $derived(totalRevenue - totalExpenses);
 </script>
 
 <div class="mx-auto max-w-5xl space-y-8 p-6">
@@ -199,7 +174,7 @@
 							<td class="px-3 py-2">{t.description}</td>
 							<td class="px-3 py-2">{t.debit}</td>
 							<td class="px-3 py-2">{t.credit}</td>
-							<td class="px-3 py-2 text-right">${t.amount.toFixed(2)}</td>
+							<td class="px-3 py-2 text-right">${Number(t.amount).toFixed(2)}</td>
 							<td class="px-3 py-2">
 								{#if classify(t) === 'Revenue'}
 									<span class="font-medium text-emerald-700">Revenue</span>
