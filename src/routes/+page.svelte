@@ -1,31 +1,35 @@
 <script>
-  // 1. Data comes from +page.server.js via the load() function.
-  let { data } = $props();
+	// 1. Data comes from +page.server.js via the load() function.
+	let { data } = $props();
 
-  // 2. Wrap the array in $state so the totals below can react to it.
-  let transactions = $state(data.transactions);
+	// 2. Wrap the array in $state so the totals below can react to it.
+	let transactions = $state(data.transactions);
 
-  // 3. Your classification function
-  function classify(t) {
-    if (t.credit === 'Revenue') {
-      return 'Revenue';
-    } else if (t.debit && t.debit.includes('Expense')) {
-      return 'Expense';
-    } else {
-      return 'Other';
-    }
-  }
+	// 3. Your classification function
+	function classify(t) {
+		if (t.credit === 'Revenue') {
+			return 'Revenue';
+		} else if (t.debit && t.debit.includes('Expense')) {
+			return 'Expense';
+		} else {
+			return 'Other';
+		}
+	}
 
-  // 4. Your derived totals
-  let totalRevenue = $derived(
-    transactions.filter((t) => classify(t) === 'Revenue').reduce((sum, t) => sum + Number(t.amount), 0)
-  );
+	// 4. Your derived totals
+	let totalRevenue = $derived(
+		transactions
+			.filter((t) => classify(t) === 'Revenue')
+			.reduce((sum, t) => sum + Number(t.amount), 0)
+	);
 
-  let totalExpenses = $derived(
-    transactions.filter((t) => classify(t) === 'Expense').reduce((sum, t) => sum + Number(t.amount), 0)
-  );
+	let totalExpenses = $derived(
+		transactions
+			.filter((t) => classify(t) === 'Expense')
+			.reduce((sum, t) => sum + Number(t.amount), 0)
+	);
 
-  let netIncome = $derived(totalRevenue - totalExpenses);
+	let netIncome = $derived(totalRevenue - totalExpenses);
 </script>
 
 <div class="mx-auto max-w-5xl space-y-8 p-6">
